@@ -7,11 +7,9 @@ import {
   Lock, 
   Eye, 
   EyeOff, 
-  User,
   ArrowRight,
   AlertCircle,
-  Chrome,
-  CheckCircle2
+  Chrome
 } from 'lucide-react';
 import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext.tsx';
 import { useToast } from '../../contexts/ToastContext.tsx';
@@ -48,53 +46,25 @@ const ShimmerButton = ({ children, className = '', loading = false, ...props }) 
   </motion.button>
 );
 
-const FirebaseRegister: React.FC = () => {
-  const [formData, setFormData] = useState({
-    displayName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
+const GlassmorphicLogin: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { register, loginWithGoogle } = useFirebaseAuth();
+  const { login, loginWithGoogle } = useFirebaseAuth();
   const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const { displayName, email, password, confirmPassword } = formData;
-
-    if (!displayName || !email || !password || !confirmPassword) {
+    if (!email || !password) {
       const errorMsg = 'Please fill in all fields';
       setError(errorMsg);
-      showError('Registration Failed', errorMsg);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      const errorMsg = 'Passwords do not match';
-      setError(errorMsg);
-      showError('Registration Failed', errorMsg);
-      return;
-    }
-
-    if (password.length < 6) {
-      const errorMsg = 'Password must be at least 6 characters';
-      setError(errorMsg);
-      showError('Registration Failed', errorMsg);
+      showError('Login Failed', errorMsg);
       return;
     }
 
@@ -102,24 +72,30 @@ const FirebaseRegister: React.FC = () => {
     setError('');
 
     try {
-      await register(email, password, displayName);
-      showSuccess('Account Created', 'Welcome to SignConnect!');
+      await login(email, password);
+      showSuccess('Login Successful', 'Welcome back to SignConnect!');
       navigate('/dashboard');
     } catch (error: any) {
-      console.error('Registration error:', error);
-      let errorMessage = 'Failed to create account';
+      console.error('Login error:', error);
+      let errorMessage = 'Failed to login';
       
       // Handle specific Firebase auth errors
       if (error.code) {
         switch (error.code) {
-          case 'auth/email-already-in-use':
-            errorMessage = 'An account with this email already exists';
+          case 'auth/user-not-found':
+            errorMessage = 'No account found with this email address';
+            break;
+          case 'auth/wrong-password':
+            errorMessage = 'Incorrect password';
             break;
           case 'auth/invalid-email':
             errorMessage = 'Invalid email address';
             break;
-          case 'auth/weak-password':
-            errorMessage = 'Password is too weak. Please choose a stronger password';
+          case 'auth/user-disabled':
+            errorMessage = 'This account has been disabled';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = 'Too many failed attempts. Please try again later';
             break;
           case 'auth/network-request-failed':
             errorMessage = 'Network error. Please check your connection';
@@ -128,43 +104,45 @@ const FirebaseRegister: React.FC = () => {
             errorMessage = 'Firebase configuration error. Please contact support';
             break;
           default:
-            errorMessage = error.message || 'Failed to create account';
+            errorMessage = error.message || 'Failed to login';
         }
       }
       
       setError(errorMessage);
-      showError('Registration Failed', errorMessage);
+      showError('Login Failed', errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSignup = async () => {
+  const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     setError('');
 
     try {
+      console.log('🚀 Starting Google login process...');
+      
       await loginWithGoogle();
-      showSuccess('Account Created', 'Welcome to SignConnect!');
+      showSuccess('Login Successful', 'Welcome to SignConnect!');
       navigate('/dashboard');
     } catch (error: any) {
-      console.error('Google signup error:', error);
-      let errorMessage = 'Failed to sign up with Google';
+      console.error('Google login error:', error);
+      let errorMessage = 'Failed to login with Google';
       
       // Handle specific Google auth errors
       if (error.code) {
         switch (error.code) {
+          case 'auth/unauthorized-domain':
+            errorMessage = 'Domain not authorized. Please contact support to add this domain to Firebase.';
+            break;
           case 'auth/popup-closed-by-user':
-            errorMessage = 'Signup cancelled by user';
+            errorMessage = 'Login cancelled by user';
             break;
           case 'auth/popup-blocked':
             errorMessage = 'Popup blocked. Please allow popups and try again';
             break;
           case 'auth/cancelled-popup-request':
-            errorMessage = 'Signup cancelled';
-            break;
-          case 'auth/account-exists-with-different-credential':
-            errorMessage = 'An account already exists with this email using a different sign-in method';
+            errorMessage = 'Login cancelled';
             break;
           case 'auth/network-request-failed':
             errorMessage = 'Network error. Please check your connection';
@@ -172,27 +150,32 @@ const FirebaseRegister: React.FC = () => {
           case 'auth/api-key-not-valid':
             errorMessage = 'Firebase configuration error. Please contact support';
             break;
+          case 'auth/invalid-api-key':
+            errorMessage = 'Invalid Firebase API key. Please contact support';
+            break;
+          case 'auth/app-not-authorized':
+            errorMessage = 'App not authorized. Please contact support';
+            break;
           default:
-            errorMessage = error.message || 'Failed to sign up with Google';
+            errorMessage = error.message || 'Failed to login with Google';
         }
       }
       
       setError(errorMessage);
-      showError('Google Signup Failed', errorMessage);
+      showError('Google Login Failed', errorMessage);
+      
+      // Additional debugging in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error('🚨 Detailed error info:', {
+          code: error.code,
+          message: error.message,
+          stack: error.stack
+        });
+      }
     } finally {
       setGoogleLoading(false);
     }
   };
-
-  const getPasswordStrength = (password: string) => {
-    if (password.length === 0) return { strength: 0, label: '', color: '' };
-    if (password.length < 6) return { strength: 25, label: 'Weak', color: 'bg-red-400' };
-    if (password.length < 8) return { strength: 50, label: 'Fair', color: 'bg-yellow-400' };
-    if (password.length < 12) return { strength: 75, label: 'Good', color: 'bg-blue-400' };
-    return { strength: 100, label: 'Strong', color: 'bg-green-400' };
-  };
-
-  const passwordStrength = getPasswordStrength(formData.password);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-50 flex items-center justify-center p-4">
@@ -218,8 +201,8 @@ const FirebaseRegister: React.FC = () => {
             <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-sky-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Join SignConnect</h1>
-            <p className="text-slate-600">Create your account to start connecting</p>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome Back</h1>
+            <p className="text-slate-600">Sign in to continue to SignConnect</p>
           </motion.div>
 
           {/* Error Message */}
@@ -234,7 +217,7 @@ const FirebaseRegister: React.FC = () => {
             </motion.div>
           )}
 
-          {/* Google Sign Up Button */}
+          {/* Google Sign In Button */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -242,7 +225,7 @@ const FirebaseRegister: React.FC = () => {
             className="mb-6"
           >
             <button
-              onClick={handleGoogleSignup}
+              onClick={handleGoogleLogin}
               disabled={googleLoading || loading}
               className="w-full flex items-center justify-center space-x-3 px-6 py-3 bg-white/70 border border-blue-200/50 rounded-xl text-slate-700 hover:bg-white/80 hover:shadow-lg transition-all duration-300 disabled:opacity-50"
             >
@@ -252,9 +235,18 @@ const FirebaseRegister: React.FC = () => {
                 <Chrome className="w-5 h-5 text-blue-500" />
               )}
               <span className="font-medium">
-                {googleLoading ? 'Creating account...' : 'Continue with Google'}
+                {googleLoading ? 'Signing in...' : 'Continue with Google'}
               </span>
             </button>
+            
+            {/* Helpful note for domain issues */}
+            {error && error.includes('Domain not authorized') && (
+              <div className="mt-3 p-3 bg-blue-50/80 border border-blue-200/50 rounded-lg">
+                <p className="text-xs text-blue-700">
+                  <strong>Tip:</strong> Try using <code className="bg-blue-100 px-1 rounded">localhost:3000</code> instead of the network IP address.
+                </p>
+              </div>
+            )}
           </motion.div>
 
           {/* Divider */}
@@ -263,11 +255,11 @@ const FirebaseRegister: React.FC = () => {
               <div className="w-full border-t border-blue-200/50" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white/50 text-slate-500 rounded-lg">or create with email</span>
+              <span className="px-4 bg-white/50 text-slate-500 rounded-lg">or continue with email</span>
             </div>
           </div>
 
-          {/* Registration Form */}
+          {/* Login Form */}
           <motion.form
             onSubmit={handleSubmit}
             className="space-y-6"
@@ -275,23 +267,6 @@ const FirebaseRegister: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            {/* Display Name Field */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Display Name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  type="text"
-                  name="displayName"
-                  value={formData.displayName}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 bg-white/70 border border-blue-200/50 rounded-xl text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent shadow-sm transition-all duration-300"
-                  placeholder="Enter your display name"
-                  required
-                />
-              </div>
-            </div>
-
             {/* Email Field */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Email Address</label>
@@ -299,9 +274,8 @@ const FirebaseRegister: React.FC = () => {
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-white/70 border border-blue-200/50 rounded-xl text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent shadow-sm transition-all duration-300"
                   placeholder="Enter your email"
                   required
@@ -316,11 +290,10 @@ const FirebaseRegister: React.FC = () => {
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-12 py-3 bg-white/70 border border-blue-200/50 rounded-xl text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent shadow-sm transition-all duration-300"
-                  placeholder="Enter your password (min 6 characters)"
+                  placeholder="Enter your password"
                   required
                 />
                 <button
@@ -331,91 +304,26 @@ const FirebaseRegister: React.FC = () => {
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {/* Password Strength Indicator */}
-              {formData.password && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-600">Password strength</span>
-                    <span className={`font-medium ${
-                      passwordStrength.strength >= 75 ? 'text-green-600' :
-                      passwordStrength.strength >= 50 ? 'text-blue-600' :
-                      passwordStrength.strength >= 25 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {passwordStrength.label}
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-200/50 rounded-full h-2 overflow-hidden">
-                    <motion.div
-                      className={`h-full rounded-full ${passwordStrength.color}`}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${passwordStrength.strength}%` }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Confirm Password Field */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Confirm Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center space-x-2 cursor-pointer">
                 <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-12 py-3 bg-white/70 border border-blue-200/50 rounded-xl text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent shadow-sm transition-all duration-300"
-                  placeholder="Confirm your password"
-                  required
+                  type="checkbox"
+                  className="w-4 h-4 text-blue-600 bg-white/70 border-blue-200/50 rounded focus:ring-blue-500 focus:ring-2"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {/* Password Match Indicator */}
-              {formData.confirmPassword && (
-                <div className="flex items-center space-x-2 text-xs">
-                  {formData.password === formData.confirmPassword ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span className="text-green-600">Passwords match</span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-red-600">Passwords don't match</span>
-                    </>
-                  )}
-                </div>
-              )}
+                <span className="text-slate-600">Remember me</span>
+              </label>
+              <button
+                type="button"
+                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
+                Forgot password?
+              </button>
             </div>
 
-            {/* Terms and Conditions */}
-            <div className="flex items-start space-x-3">
-              <input
-                type="checkbox"
-                required
-                className="w-4 h-4 text-blue-600 bg-white/70 border-blue-200/50 rounded focus:ring-blue-500 focus:ring-2 mt-0.5"
-              />
-              <span className="text-sm text-slate-600">
-                I agree to the{' '}
-                <button type="button" className="text-blue-600 hover:text-blue-700 font-medium">
-                  Terms of Service
-                </button>{' '}
-                and{' '}
-                <button type="button" className="text-blue-600 hover:text-blue-700 font-medium">
-                  Privacy Policy
-                </button>
-              </span>
-            </div>
-
-            {/* Create Account Button */}
+            {/* Sign In Button */}
             <ShimmerButton
               type="submit"
               loading={loading}
@@ -424,32 +332,34 @@ const FirebaseRegister: React.FC = () => {
               {loading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Creating account...</span>
+                  <span>Signing in...</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center space-x-2">
-                  <span>Create Account</span>
+                  <span>Sign In</span>
                   <ArrowRight className="w-4 h-4" />
                 </div>
               )}
             </ShimmerButton>
           </motion.form>
 
-          {/* Sign In Link */}
+          {/* Sign Up Link */}
           <motion.div
             className="mt-8 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <span className="text-slate-600">Already have an account? </span>
+            <span className="text-slate-600">Don't have an account? </span>
             <Link
-              to="/login"
+              to="/register"
               className="font-medium text-blue-600 hover:text-blue-700 transition-colors"
             >
-              Sign in here
+              Sign up here
             </Link>
           </motion.div>
+
+
         </GlassCard>
 
         {/* Floating Elements */}
@@ -482,4 +392,4 @@ const FirebaseRegister: React.FC = () => {
   );
 };
 
-export default FirebaseRegister;
+export default GlassmorphicLogin;

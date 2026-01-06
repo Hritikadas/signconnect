@@ -1,20 +1,22 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import {
   User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   onAuthStateChanged,
   updateProfile,
   AuthError
 } from 'firebase/auth';
 import { ref, set, onDisconnect, serverTimestamp, onValue, off } from 'firebase/database';
-import { auth, database } from '../config/firebase';
+import { auth, database, googleProvider } from '../config/firebase.ts';
 
 interface FirebaseAuthContextType {
   currentUser: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
   onlineUsers: OnlineUser[];
@@ -82,6 +84,16 @@ export const FirebaseAuthProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
   };
 
+  const loginWithGoogle = async (): Promise<void> => {
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      await setUserOnlineStatus(userCredential.user, true);
+    } catch (error) {
+      const authError = error as AuthError;
+      throw new Error(authError.message);
+    }
+  };
+
   const logout = async (): Promise<void> => {
     try {
       if (currentUser) {
@@ -96,6 +108,11 @@ export const FirebaseAuthProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   // User status management
   const setUserOnlineStatus = async (user: User, isOnline: boolean) => {
+    if (!database) {
+      console.warn('Firebase Realtime Database not configured - skipping user status update');
+      return;
+    }
+
     const userRef = ref(database, `users/${user.uid}`);
     const userData = {
       uid: user.uid,
@@ -124,6 +141,7 @@ export const FirebaseAuthProvider: React.FC<{ children: ReactNode }> = ({ childr
   // Session management
   const createSession = async (targetUserId: string): Promise<string> => {
     if (!currentUser) throw new Error('User not authenticated');
+    if (!database) throw new Error('Firebase Realtime Database not configured');
 
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const sessionRef = ref(database, `sessions/${sessionId}`);
@@ -156,14 +174,14 @@ export const FirebaseAuthProvider: React.FC<{ children: ReactNode }> = ({ childr
     return sessionId;
   };
 
-  const joinSession = async (sessionId: string): Promise<void> => {
+  const joinSession = useCallback(async (sessionId: string): Promise<void> => {
     if (!currentUser) throw new Error('User not authenticated');
+    if (!database) throw new Error('Firebase Realtime Database not configured');
 
     const sessionRef = ref(database, `sessions/${sessionId}`);
     await set(ref(database, `sessions/${sessionId}/status`), 'active');
     
     // Accept invitation
-    const invitationRef = ref(database, `invitations/${currentUser.uid}/${sessionId}`);
     await set(ref(database, `invitations/${currentUser.uid}/${sessionId}/status`), 'accepted');
 
     // Listen for session updates
@@ -173,11 +191,11 @@ export const FirebaseAuthProvider: React.FC<{ children: ReactNode }> = ({ childr
         setCurrentSession(session);
       }
     });
-  };
+  }, [currentUser]);
 
   // Listen for online users
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !database) return;
 
     const usersRef = ref(database, 'users');
     const unsubscribe = onValue(usersRef, (snapshot) => {
@@ -201,7 +219,7 @@ export const FirebaseAuthProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   // Listen for invitations
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !database) return;
 
     const invitationsRef = ref(database, `invitations/${currentUser.uid}`);
     const unsubscribe = onValue(invitationsRef, (snapshot) => {
@@ -218,7 +236,9 @@ export const FirebaseAuthProvider: React.FC<{ children: ReactNode }> = ({ childr
               joinSession(sessionId);
             } else {
               // Decline invitation
-              set(ref(database, `invitations/${currentUser.uid}/${sessionId}/status`), 'declined');
+              if (database) {
+                set(ref(database, `invitations/${currentUser.uid}/${sessionId}/status`), 'declined');
+              }
             }
           }
         });
@@ -226,7 +246,7 @@ export const FirebaseAuthProvider: React.FC<{ children: ReactNode }> = ({ childr
     });
 
     return () => off(invitationsRef, 'value', unsubscribe);
-  }, [currentUser]);
+  }, [currentUser, joinSession]);
 
   // Auth state listener
   useEffect(() => {
@@ -247,6 +267,7 @@ export const FirebaseAuthProvider: React.FC<{ children: ReactNode }> = ({ childr
     currentUser,
     loading,
     login,
+    loginWithGoogle,
     register,
     logout,
     onlineUsers,

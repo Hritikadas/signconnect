@@ -1,0 +1,9 @@
+{
+  "short_name": "SignConnect",
+  "name": "SignConnect - AI-Powered Sign Language Platform",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#f0f9ff"
+}

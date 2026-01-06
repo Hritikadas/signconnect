@@ -33,6 +33,21 @@ app.use(morgan('dev'));
 connectDatabase();
 
 // Routes
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'SignConnect API Server',
+    version: '1.0.0',
+    status: 'operational',
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      users: '/api/users',
+      rooms: '/api/rooms'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/rooms', roomRoutes);

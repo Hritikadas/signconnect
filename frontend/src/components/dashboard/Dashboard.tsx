@@ -1,10 +1,33 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import RecentRooms from '../RecentRooms';
 
 const Dashboard: React.FC = () => {
   const [roomId, setRoomId] = useState('');
   const navigate = useNavigate();
+
+  // Mock data for recent rooms - replace with actual data from your backend
+  const [recentRooms] = useState([
+    {
+      id: 'room-123',
+      name: 'Team Meeting',
+      lastJoined: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      participantCount: 3
+    },
+    {
+      id: 'room-456',
+      name: 'ASL Practice Session',
+      lastJoined: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+      participantCount: 5
+    },
+    {
+      id: 'room-789',
+      name: 'Client Presentation',
+      lastJoined: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      participantCount: 2
+    }
+  ]);
 
   const createRoom = () => {
     const newRoomId = uuidv4();
@@ -15,6 +38,10 @@ const Dashboard: React.FC = () => {
     if (roomId.trim()) {
       navigate(`/room/${roomId}`);
     }
+  };
+
+  const handleJoinRoom = (roomId: string) => {
+    navigate(`/room/${roomId}`);
   };
 
   return (
@@ -79,6 +106,11 @@ const Dashboard: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Recent Rooms Section */}
+      <div className="mb-12">
+        <RecentRooms rooms={recentRooms} onJoinRoom={handleJoinRoom} />
       </div>
 
       <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl shadow-xl p-8 text-white">

@@ -23,5 +23,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/yourusername/signconnect"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "firebase": "^12.7.0",
+    "openai": "^6.15.0"
   }
 }

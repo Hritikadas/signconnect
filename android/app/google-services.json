@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "711079452256",
+    "firebase_url": "https://signconnect-56320-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "signconnect-56320",
+    "storage_bucket": "signconnect-56320.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:711079452256:android:48a6449c7e09b7de6eed05",
+        "android_client_info": {
+          "package_name": "com.hritika.signconnect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "711079452256-l45jcpss5vri05n0u67rq7a4s6agbo58.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwnCYAgG_dTpgXudZYbJ20PCpuwMhAfI8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "711079452256-l45jcpss5vri05n0u67rq7a4s6agbo58.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

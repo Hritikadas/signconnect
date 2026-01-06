@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
+import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext.tsx';
 
 interface FirebaseProtectedRouteProps {
   children: React.ReactNode;
