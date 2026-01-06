@@ -287,8 +287,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📧 Support
 
 - **Issues:** [GitHub Issues](https://github.com/Hritikadas/signconnect/issues)
-- **Email:** hritikadas@example.com
-- **Discord:** [Join our community](https://discord.gg/signconnect)
+- **Email:** hritikadas14@gmail.com
+  
 
 ---
 
