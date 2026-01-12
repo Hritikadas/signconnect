@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
+import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext.tsx';
 
 const FirebaseLogin: React.FC = () => {
   const [email, setEmail] = useState('');

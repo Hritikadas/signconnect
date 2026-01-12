@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
+import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext.tsx';
 import { useNavigate } from 'react-router-dom';
 
 const FirebaseDashboard: React.FC = () => {

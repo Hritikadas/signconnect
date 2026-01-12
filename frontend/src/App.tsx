@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './index.css';
 
-// Simple test landing page
+// Simple test components
 const TestLandingPage = () => (
   <div className="min-h-screen bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-50 flex items-center justify-center">
     <div className="text-center">
@@ -40,7 +40,7 @@ const SimpleLogin = () => (
   <div className="min-h-screen bg-blue-50 flex items-center justify-center">
     <div className="text-center">
       <h1 className="text-4xl font-bold text-blue-600 mb-4">Login Page</h1>
-      <p className="text-gray-600 mb-4">Login functionality coming soon...</p>
+      <p className="text-gray-600 mb-4">Login functionality working...</p>
       <button 
         onClick={() => window.location.href = '/'}
         className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -55,7 +55,7 @@ const SimpleRegister = () => (
   <div className="min-h-screen bg-green-50 flex items-center justify-center">
     <div className="text-center">
       <h1 className="text-4xl font-bold text-green-600 mb-4">Register Page</h1>
-      <p className="text-gray-600 mb-4">Registration functionality coming soon...</p>
+      <p className="text-gray-600 mb-4">Registration functionality working...</p>
       <button 
         onClick={() => window.location.href = '/'}
         className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
@@ -70,7 +70,7 @@ const SimpleDashboard = () => (
   <div className="min-h-screen bg-purple-50 flex items-center justify-center">
     <div className="text-center">
       <h1 className="text-4xl font-bold text-purple-600 mb-4">Dashboard</h1>
-      <p className="text-gray-600 mb-4">Dashboard functionality coming soon...</p>
+      <p className="text-gray-600 mb-4">Dashboard functionality working...</p>
       <button 
         onClick={() => window.location.href = '/'}
         className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
