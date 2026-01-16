@@ -178,7 +178,7 @@ signconnect/
 ### DevOps
 - **Containerization:** Docker & Docker Compose
 - **Database:** SQLite (dev), PostgreSQL (production)
-- **CI/CD:** GitHub Actions (planned)
+- **CI/CD:** Automated pipelines (planned)
 - **Hosting:** Vercel (Frontend), Railway/AWS (Backend)
 
 ---
@@ -250,14 +250,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [MediaPipe](https://mediapipe.dev/) for hand tracking
 - [TensorFlow.js](https://www.tensorflow.org/js) for ML capabilities
 - [Socket.IO](https://socket.io/) for real-time communication
-- [SimplePeer](https://github.com/feross/simple-peer) for WebRTC abstraction
+- [SimplePeer](https://www.npmjs.com/package/simple-peer) for WebRTC abstraction
 
 ---
 
 ## 📧 Support
 
-- **Issues:** [GitHub Issues](https://github.com/Hritikadas/signconnect/issues)
-- **Email:** hritikadas14@gmail.com
+- **Documentation:** Check the `/docs` folder for comprehensive guides
+- **Issues:** Report bugs or request features through your project management system
+- **Email:** support@signconnect.com
   
 
 ---

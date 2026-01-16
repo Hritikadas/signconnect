@@ -302,7 +302,7 @@ Both frontend and backend support hot reload:
 
 ## Getting Help
 
-- Check existing issues on GitHub
+- Check existing issues in your project management system
 - Review documentation in `/docs` folder
 - Contact support team
 - Join community Discord
@@ -324,7 +324,7 @@ git commit -m "Add your feature"
 # Push to repository
 git push origin feature/your-feature
 
-# Create pull request on GitHub
+# Create pull request in your repository
 ```
 
 Happy coding! 🚀

@@ -13,7 +13,7 @@ Thank you for your interest in contributing to SignConnect! This document provid
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/yourusername/signconnect/issues)
+1. Check if the bug has already been reported in your issue tracking system
 2. If not, create a new issue with:
    - Clear title and description
    - Steps to reproduce
@@ -34,7 +34,7 @@ Thank you for your interest in contributing to SignConnect! This document provid
 
 1. **Fork the repository**
    ```bash
-   git clone https://github.com/yourusername/signconnect.git
+   git clone https://github.com/your-username/signconnect.git
    cd signconnect
    ```
 
@@ -147,9 +147,9 @@ signconnect/
 
 ## Getting Help
 
-- Join our [Discord community](https://discord.gg/signconnect)
+- Join your team's communication channel
 - Check [documentation](docs/)
-- Ask questions in [Discussions](https://github.com/yourusername/signconnect/discussions)
+- Ask questions in your project discussions
 
 ## Recognition
 

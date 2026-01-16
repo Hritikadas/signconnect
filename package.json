@@ -22,7 +22,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/signconnect"
+    "url": "https://github.com/your-username/signconnect"
   },
   "dependencies": {
     "dotenv": "^17.2.3",

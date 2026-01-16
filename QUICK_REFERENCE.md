@@ -255,7 +255,7 @@ docker-compose up -d
 ## 📞 Support
 
 - **Documentation:** Check `/docs` folder
-- **Issues:** Create GitHub issue
+- **Issues:** Use your project's issue tracking system
 - **Logs:** Check terminal output
 - **Database:** Use `npx prisma studio`
 

@@ -155,8 +155,8 @@ docker-compose up -d
 
 ## Support
 
-- 🐛 [Report Issues](https://github.com/yourusername/signconnect/issues)
-- 💬 [Join Discord](https://discord.gg/signconnect)
+- 🐛 Report Issues: Use your project's issue tracking system
+- 💬 Community: Join your team's communication channel
 - 📧 Email: support@signconnect.com
 
 ---
