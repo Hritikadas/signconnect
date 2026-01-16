@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ref, push, onValue, off, set } from 'firebase/database';
-import { database } from '../../config/firebase';
-import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
+import { database } from '../../config/firebase.ts';
+import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext.tsx';
 
 interface Message {
   id: string;

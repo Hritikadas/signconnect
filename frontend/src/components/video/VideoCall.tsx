@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Webcam from 'react-webcam';
-import { useAuth } from '../../contexts/AuthContext';
-import SignDetector from '../sign/SignDetector';
-import ChatPanel from '../chat/ChatPanel';
-import ParticipantList from './ParticipantList';
-import VideoControls from './VideoControls';
-import { useWebRTC } from '../../hooks/useWebRTC';
-import { useSocket } from '../../hooks/useSocket';
+import { useAuth } from '../../contexts/AuthContext.tsx';
+import SignDetector from '../sign/SignDetector.tsx';
+import ChatPanel from '../chat/ChatPanel.tsx';
+import ParticipantList from './ParticipantList.tsx';
+import VideoControls from './VideoControls.tsx';
+import { useWebRTC } from '../../hooks/useWebRTC.ts';
+import { useSocket } from '../../hooks/useSocket.ts';
 
 const VideoCall: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
