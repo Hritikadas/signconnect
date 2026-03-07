@@ -4,7 +4,7 @@
 
 ### Prerequisites
 - Vercel account
-- GitHub repository connected
+- Git repository connected
 
 ### Steps
 
@@ -38,7 +38,7 @@
 
 1. **Create Railway Account**
    - Visit railway.app
-   - Connect GitHub repository
+   - Connect your Git repository
 
 2. **Configure Environment Variables**
    Add all variables from `.env.example`

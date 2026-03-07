@@ -410,7 +410,7 @@ npm install
 - Search existing issues
 
 ### Community
-- GitHub Issues
+- Project issue tracking system
 - Discord (planned)
 - Email support
 

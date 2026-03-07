@@ -318,7 +318,7 @@ docker-compose up -d
 
 ### Technical Improvements
 - Unit and integration tests
-- CI/CD pipeline (GitHub Actions)
+- CI/CD pipeline (automated deployment)
 - Rate limiting
 - Redis for session management
 - Microservices architecture
@@ -361,7 +361,7 @@ This project is fully functional and ready for:
 ## 📞 Support & Resources
 
 - **Documentation:** `/docs` folder
-- **Issues:** GitHub Issues
+- **Issues:** Project issue tracking system
 - **Email:** support@signconnect.com
 - **Discord:** Community server (planned)
 
