@@ -56,3 +56,20 @@ backend/prisma/migrations/
 # Firebase
 firebase-debug.log
 .firebase/
+.vercel
+.env*.local
+
+# --- Python & ML Specific (SignConnect) ---
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Large ML Models & Data
+*.pkl
+*.h5
+# Keep your CSVs if they are small (e.g., sign_language.csv)
+# but ignore them if they contain thousands of rows of data
+# *.csv

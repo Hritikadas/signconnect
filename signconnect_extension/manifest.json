@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "SignConnect - Sign Language Interpreter",
+  "version": "1.0.0",
+  "description": "Real-time sign language detection overlay for any webpage. Works with Google Meet, Zoom, and more.",
+  
+  "action": {
+    "default_popup": "popup.html",
+    
+    
+    "default_title": "SignConnect"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://meet.google.com/*",
+        "https://zoom.us/*",
+        "https://teams.microsoft.com/*",
+        "https://*/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*/*"
+  ],
+  
+    "web_accessible_resources": [
+  {
+    "resources": ["hands.js"],
+    "matches": ["https://meet.google.com/*"]
+  }
+],
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
