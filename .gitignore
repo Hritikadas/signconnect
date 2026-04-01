@@ -73,3 +73,5 @@ env/
 # Keep your CSVs if they are small (e.g., sign_language.csv)
 # but ignore them if they contain thousands of rows of data
 # *.csv
+# *.md
+# !README.md
