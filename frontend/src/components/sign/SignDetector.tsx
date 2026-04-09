@@ -8,7 +8,6 @@ interface SignDetectorProps {
   onSignDetected: (text: string) => void;
 }
 
-
 const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
@@ -16,6 +15,15 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
   const lastDetectedSignRef = useRef<string | null>(null);
   const lastDetectionTimeRef = useRef<number>(0);
   const cameraRef = useRef<Camera | null>(null);
+
+  // --- Text-to-Speech Function ---
+  const speak = (text: string) => {
+    window.speechSynthesis.cancel(); // Stop current speech to avoid overlapping
+    const cleanText = text.replace(/[^\w\s]/gi, ''); // Remove emojis for cleaner speech
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  };
 
   const drawLandmarks = (ctx: CanvasRenderingContext2D, landmarks: any[]) => {
     ctx.fillStyle = '#00FF00';
@@ -29,7 +37,7 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
       ctx.arc(x, y, 5, 0, 2 * Math.PI);
       ctx.fill();
       
-      if (index === 0 || index === 4 || index === 8 || index === 12 || index === 16 || index === 20) {
+      if ([0, 4, 8, 12, 16, 20].includes(index)) {
         ctx.fillStyle = '#FFFFFF';
         ctx.font = '12px Arial';
         ctx.fillText(index.toString(), x + 8, y);
@@ -38,12 +46,9 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
     });
 
     const connections = [
-      [0, 1], [1, 2], [2, 3], [3, 4],
-      [0, 5], [5, 6], [6, 7], [7, 8],
-      [0, 9], [9, 10], [10, 11], [11, 12],
-      [0, 13], [13, 14], [14, 15], [15, 16],
-      [0, 17], [17, 18], [18, 19], [19, 20],
-      [5, 9], [9, 13], [13, 17]
+      [0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8],
+      [0, 9], [9, 10], [10, 11], [11, 12], [0, 13], [13, 14], [14, 15], [15, 16],
+      [0, 17], [17, 18], [18, 19], [19, 20], [5, 9], [9, 13], [13, 17]
     ];
 
     connections.forEach(([start, end]) => {
@@ -74,9 +79,7 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
         Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
 
       const isFingerExtended = (tip: any, pip: any, wrist: any) => {
-        const tipToWrist = distance(tip, wrist);
-        const pipToWrist = distance(pip, wrist);
-        return tipToWrist > pipToWrist * 1.1;
+        return distance(tip, wrist) > distance(pip, wrist) * 1.1;
       };
 
       const thumbExtended = distance(thumbTip, thumbIP) > 0.05;
@@ -85,100 +88,29 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
       const ringExtended = isFingerExtended(ringTip, ringPIP, wrist);
       const pinkyExtended = isFingerExtended(pinkyTip, pinkyPIP, wrist);
 
-      const extendedCount = [indexExtended, middleExtended, ringExtended, pinkyExtended].filter(Boolean).length;
-
-      if (thumbExtended && !indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
-        return 'Thumbs Up 👍';
-      }
-
-      if (thumbTip.y > wrist.y && !indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
-        return 'Thumbs Down 👎';
-      }
-
-      if (indexExtended && middleExtended && !ringExtended && !pinkyExtended) {
-        return 'Peace ✌️';
-      }
-
-      const thumbIndexDistance = distance(thumbTip, indexTip);
-      if (thumbIndexDistance < 0.04 && middleExtended && ringExtended && pinkyExtended) {
-        return 'OK 👌';
-      }
-
-      if (indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
-        return 'Pointing ☝️';
-      }
-
-      if (indexExtended && !middleExtended && !ringExtended && pinkyExtended) {
-        return 'Rock On 🤘';
-      }
-
-      if (thumbExtended && !indexExtended && !middleExtended && !ringExtended && pinkyExtended) {
-        return 'Call Me 🤙';
-      }
-
-      if (indexExtended && middleExtended && ringExtended && pinkyExtended) {
-        return 'Hello 👋';
-      }
-
-      if (!indexExtended && !middleExtended && !ringExtended && !pinkyExtended) {
-        return 'Fist ✊';
-      }
-
-      if (extendedCount === 1 && indexExtended) {
-        return 'One 1️⃣';
-      }
-      if (extendedCount === 2 && indexExtended && middleExtended) {
-        return 'Two 2️⃣';
-      }
-      if (extendedCount === 3 && indexExtended && middleExtended && ringExtended) {
-        return 'Three 3️⃣';
-      }
-      if (extendedCount === 4) {
-        return 'Four 4️⃣';
-      }
-
-      if (indexExtended && middleExtended && ringExtended && pinkyExtended && thumbExtended) {
-        return 'Stop ✋';
-      }
+      // --- Gesture Logic ---
+      if (thumbExtended && indexExtended && !middleExtended && !ringExtended && pinkyExtended) return 'I Love You 🤟';
+      if (indexExtended && middleExtended && !ringExtended && !pinkyExtended) return 'Victory ✌️';
+      if (thumbExtended && indexExtended && !middleExtended && !ringExtended && !pinkyExtended) return 'L-Shape 📐';
+      if (pinkyExtended && !indexExtended && !middleExtended && !ringExtended) return 'Pinky Promise 🤙';
+      if (thumbExtended && !indexExtended && !middleExtended && !ringExtended && !pinkyExtended) return 'Thumbs Up 👍';
+      
+      const thumbIndexDist = distance(thumbTip, indexTip);
+      if (thumbIndexDist < 0.04 && middleExtended && ringExtended && pinkyExtended) return 'OK 👌';
+      if (indexExtended && middleExtended && ringExtended && pinkyExtended && thumbExtended) return 'Hello 👋';
+      if (!indexExtended && !middleExtended && !ringExtended && !pinkyExtended) return 'Fist ✊';
 
       return null;
-    } catch (error) {
-      console.error('Error classifying gesture:', error);
-      return null;
-    }
-  };
-
-  const getMostCommonSign = (buffer: string[]): string | null => {
-    if (buffer.length < 3) return null;
-    
-    const counts: { [key: string]: number } = {};
-    buffer.forEach(sign => {
-      counts[sign] = (counts[sign] || 0) + 1;
-    });
-
-    let maxCount = 0;
-    let mostCommon: string | null = null;
-    
-    for (const [sign, count] of Object.entries(counts)) {
-      if (count > maxCount && count >= 3) {
-        maxCount = count;
-        mostCommon = sign;
-      }
-    }
-
-    return mostCommon;
+    } catch (e) { return null; }
   };
 
   const onResults = useCallback((results: Results) => {
-    if (!canvasRef.current) return;
-
+    if (!canvasRef.current || !canvasRef.current.getContext('2d')) return;
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const ctx = canvas.getContext('2d')!;
 
     canvas.width = results.image.width;
     canvas.height = results.image.height;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
@@ -188,90 +120,61 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
         
         if (detectedSign) {
           detectionBufferRef.current.push(detectedSign);
+          if (detectionBufferRef.current.length > 10) detectionBufferRef.current.shift();
           
-          if (detectionBufferRef.current.length > 15) {
-            detectionBufferRef.current.shift();
-          }
-          
-          const mostCommon = getMostCommonSign(detectionBufferRef.current);
-          
+          const counts: any = {};
+          detectionBufferRef.current.forEach(s => counts[s] = (counts[s] || 0) + 1);
+          const mostCommon = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+
           const now = Date.now();
-          if (mostCommon && 
-              (mostCommon !== lastDetectedSignRef.current || 
-               now - lastDetectionTimeRef.current > 3000)) {
+          if (counts[mostCommon] >= 5 && (mostCommon !== lastDetectedSignRef.current || now - lastDetectionTimeRef.current > 3000)) {
             lastDetectedSignRef.current = mostCommon;
             lastDetectionTimeRef.current = now;
+            speak(mostCommon); // Trigger Speech
             onSignDetected(mostCommon);
-            detectionBufferRef.current = [];
           }
         }
-      }
-    } else {
-      if (detectionBufferRef.current.length > 0) {
-        detectionBufferRef.current = [];
       }
     }
   }, [onSignDetected]);
 
   useEffect(() => {
-    const initializeDetector = async () => {
+    let hands: Hands | null = null;
+
+    const init = async () => {
       try {
         await tf.ready();
-        console.log('TensorFlow.js ready');
-        
-        const hands = new Hands({
-          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`
+        hands = new Hands({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@latest/${file}`
         });
 
-        hands.setOptions({
-          maxNumHands: 2,
-          modelComplexity: 1,
-          minDetectionConfidence: 0.7,
-          minTrackingConfidence: 0.7
-        });
-
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
         hands.onResults(onResults);
 
         if (webcamRef.current?.video) {
-          const camera = new Camera(webcamRef.current.video, {
-            onFrame: async () => {
-              if (webcamRef.current?.video) {
-                await hands.send({ image: webcamRef.current.video });
-              }
-            },
-            width: 640,
-            height: 480
+          cameraRef.current = new Camera(webcamRef.current.video, {
+            onFrame: async () => { if (hands && webcamRef.current?.video) await hands.send({ image: webcamRef.current.video }); },
+            width: 640, height: 480
           });
-          cameraRef.current = camera;
-          camera.start();
-          console.log('MediaPipe Hands initialized');
+          await cameraRef.current.start();
+          setIsModelLoaded(true);
         }
-
-        setIsModelLoaded(true);
-      } catch (error) {
-        console.error('Error initializing sign detector:', error);
-      }
+      } catch (err) { console.error(err); }
     };
 
-    initializeDetector();
-
-    return () => {
-      if (cameraRef.current) {
-        cameraRef.current.stop();
-      }
+    init();
+    return () => { 
+      cameraRef.current?.stop(); 
+      hands?.close(); 
     };
   }, [webcamRef, onResults]);
 
   return (
     <>
-      <canvas
-        ref={canvasRef}
-        className="absolute top-0 left-0 w-full h-full pointer-events-none"
-        style={{ opacity: 0.8 }}
-      />
+      <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ opacity: 0.8 }} />
       {isModelLoaded && (
-        <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-          🤟 Sign Detection Active
+        <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+          🤟 Sign Detection & Voice Active
         </div>
       )}
     </>
