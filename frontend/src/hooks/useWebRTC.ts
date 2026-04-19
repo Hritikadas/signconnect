@@ -37,7 +37,7 @@ export const useWebRTC = (roomId: string, socket: Socket | null, user: any) => {
   }, []);
 
   useEffect(() => {
-    if (!socket || !localStream) return;
+    if (!socket || !localStream || !user?.id) return;
 
     socket.emit('join-room', { roomId, userId: user.id, userName: user.name });
 

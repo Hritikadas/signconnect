@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useParams, Navigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
 import { useAuth } from '../../contexts/AuthContext.tsx';
 import SignDetector from '../sign/SignDetector.tsx';
@@ -11,8 +11,9 @@ import { useSocket } from '../../hooks/useSocket.ts';
 
 const VideoCall: React.FC = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const webcamRef = useRef<Webcam>(null);
+  const [webcamReady, setWebcamReady] = useState(false);
   
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [isSignDetectionActive, setIsSignDetectionActive] = useState(true);
@@ -22,11 +23,15 @@ const VideoCall: React.FC = () => {
   const [detectedText, setDetectedText] = useState('');
 
   const socket = useSocket(roomId!);
-  const { peers, localStream, toggleAudio, toggleVideo, startScreenShare, stopScreenShare } = useWebRTC(
+  const { peers, toggleAudio, toggleVideo, startScreenShare, stopScreenShare } = useWebRTC(
     roomId!,
     socket,
-    user!
+    user
   );
+
+  const handleUserMedia = useCallback(() => {
+    setWebcamReady(true);
+  }, []);
 
   const handleSignDetected = (text: string) => {
     setDetectedText(text);
@@ -54,6 +59,22 @@ const VideoCall: React.FC = () => {
       setIsScreenSharing(true);
     }
   };
+
+  useEffect(() => {
+    if (isVideoOff) setWebcamReady(false);
+  }, [isVideoOff]);
+
+  if (authLoading) {
+    return (
+      <div className="h-screen bg-gray-900 flex items-center justify-center">
+        <p className="text-white text-lg">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
     <div className="h-screen bg-gray-900 flex flex-col">
@@ -87,7 +108,10 @@ const VideoCall: React.FC = () => {
                 audio={false}
                 className="w-full h-full object-cover"
                 mirrored
+                onUserMedia={handleUserMedia}
               />
+
+              
             )}
             {isVideoOff && (
               <div className="w-full h-full flex items-center justify-center">
@@ -101,7 +125,7 @@ const VideoCall: React.FC = () => {
             )}
             
             {/* Sign Detection Overlay */}
-            {isSignDetectionActive && !isVideoOff && webcamRef.current && (
+            {isSignDetectionActive && !isVideoOff && webcamReady && (
               <SignDetector
                 webcamRef={webcamRef}
                 onSignDetected={handleSignDetected}
@@ -175,7 +199,7 @@ const VideoCall: React.FC = () => {
             {isChatOpen ? (
               <ChatPanel roomId={roomId!} socket={socket} />
             ) : (
-              <ParticipantList participants={[{ id: user!.id, name: user!.name }, ...peers.map(p => ({ id: p.peerId, name: p.userName }))]} />
+              <ParticipantList participants={[{ id: user.id, name: user.name }, ...peers.map(p => ({ id: p.peerId, name: p.userName }))]} />
             )}
           </div>
         </div>

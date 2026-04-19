@@ -15,6 +15,14 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
   const lastDetectedSignRef = useRef<string | null>(null);
   const lastDetectionTimeRef = useRef<number>(0);
   const cameraRef = useRef<Camera | null>(null);
+  const handsRef = useRef<Hands | null>(null);
+  const disposedRef = useRef(false);
+  const onSignDetectedRef = useRef(onSignDetected);
+
+  // Keep the callback ref in sync without triggering re-renders/re-effects
+  useEffect(() => {
+    onSignDetectedRef.current = onSignDetected;
+  }, [onSignDetected]);
 
   // --- Text-to-Speech Function ---
   const speak = (text: string) => {
@@ -104,7 +112,11 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
     } catch (e) { return null; }
   };
 
+  // Stable onResults handler — reads onSignDetected from ref so it never changes identity
   const onResults = useCallback((results: Results) => {
+    // Guard: don't process results if the instance has been disposed
+    if (disposedRef.current) return;
+
     if (!canvasRef.current || !canvasRef.current.getContext('2d')) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d')!;
@@ -131,29 +143,46 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
             lastDetectedSignRef.current = mostCommon;
             lastDetectionTimeRef.current = now;
             speak(mostCommon); // Trigger Speech
-            onSignDetected(mostCommon);
+            onSignDetectedRef.current(mostCommon);
           }
         }
       }
     }
-  }, [onSignDetected]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Stable — never changes identity
 
   useEffect(() => {
-    let hands: Hands | null = null;
+    disposedRef.current = false;
 
     const init = async () => {
       try {
         await tf.ready();
-        hands = new Hands({
+
+        // If the component was unmounted while tf was loading, bail out
+        if (disposedRef.current) return;
+
+        const hands = new Hands({
           locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@latest/${file}`
         });
 
         hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
         hands.onResults(onResults);
+        handsRef.current = hands;
 
         if (webcamRef.current?.video) {
           cameraRef.current = new Camera(webcamRef.current.video, {
-            onFrame: async () => { if (hands && webcamRef.current?.video) await hands.send({ image: webcamRef.current.video }); },
+            onFrame: async () => {
+              // Guard: don't send frames if already disposed
+              if (disposedRef.current || !handsRef.current) return;
+              if (webcamRef.current?.video) {
+                try {
+                  await handsRef.current.send({ image: webcamRef.current.video });
+                } catch (e) {
+                  // Silently ignore errors from disposed WASM objects during teardown
+                  if (!disposedRef.current) console.error(e);
+                }
+              }
+            },
             width: 640, height: 480
           });
           await cameraRef.current.start();
@@ -163,9 +192,21 @@ const SignDetector: React.FC<SignDetectorProps> = ({ webcamRef, onSignDetected }
     };
 
     init();
-    return () => { 
-      cameraRef.current?.stop(); 
-      hands?.close(); 
+
+    return () => {
+      // Mark as disposed FIRST, before stopping camera/closing hands.
+      // This prevents the onFrame callback from calling send() on a closing/closed instance.
+      disposedRef.current = true;
+
+      if (cameraRef.current) {
+        cameraRef.current.stop();
+        cameraRef.current = null;
+      }
+
+      if (handsRef.current) {
+        handsRef.current.close();
+        handsRef.current = null;
+      }
     };
   }, [webcamRef, onResults]);
 
